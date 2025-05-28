@@ -16,17 +16,25 @@ jobs:
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
         run: |
+          set -x
           REQUIRED_SECTIONS=("Summary" "Changes" "Issue Link")
+          MISSING_SECTIONS=()
+          for SECTION in "${REQUIRED_SECTIONS[@]}"; do
+            if [[ ! "$PR_BODY" =~ $SECTION ]]; then
+              MISSING_SECTIONS+=("$SECTION")
+            fi
+          done
           MISSING_SECTIONS_ARR_LENGTH=0
-              for _ in "${MISSING_SECTIONS[@]}"; do
-                ((MISSING_SECTIONS_ARR_LENGTH++))
-              done
 
-              if [ ${MISSING_SECTIONS_ARR_LENGTH} -ne 0 ]; then
-                echo "❌ ERROR: PR must include the required sections: ${MISSING_SECTIONS[*]}"
-                exit 1
-              fi
- 
+          for _ in "${MISSING_SECTIONS[@]}"; do
+            ((MISSING_SECTIONS_ARR_LENGTH++))
+          done
+
+          if [ ${MISSING_SECTIONS_ARR_LENGTH} -ne 0 ]; then
+            echo "❌ ERROR: PR must include the required sections: ${MISSING_SECTIONS[*]}"
+            exit 1
+          fi
+          
       - name: Check JIRA Ticket
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
